@@ -3,7 +3,7 @@ import type { EmailSendParams, EmailSendResult } from '../types/index';
 import { ServiceError } from '../middleware/errorHandler';
 
 // ── Email HTML template ───────────────────────────────────────────────────────
-function buildEmailHtml(name: string, score: number, tier: string): string {
+function buildEmailHtml(name: string, score: number, tier: string, pdfFilename: string): string {
   const tierColors: Record<string, string> = {
     'Peace Champion':  '#22C55E',
     'On Your Way':     '#4A90D9',
@@ -59,7 +59,7 @@ function buildEmailHtml(name: string, score: number, tier: string): string {
               </p>
 
               <p style="margin:0 0 28px;font-size:14px;color:#94A3B8;">
-                Can't see the attachment? Check your spam folder. The file is named <strong>jesse-readiness-plan.pdf</strong>.
+                Can't see the attachment? Check your spam folder. The file is named <strong>${pdfFilename}</strong>.
               </p>
 
               <p style="margin:0;font-size:15px;color:#475569;line-height:1.7;">
@@ -107,15 +107,20 @@ export async function sendPlanEmail({ name, email, score, tier, pdfBuffer }: Ema
   // Production: const recipientEmail = email;
   const recipientEmail = 'bluesproutagency@gmail.com'; // endevo-life admin test address
 
+  // Build filename: "Jesse Test - 7Day Plan - 2026-02-25.pdf"
+  const dateStr    = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+  const safeName   = name.replace(/[^a-zA-Z0-9 _-]/g, '').trim();
+  const pdfFilename = `${safeName} - 7Day Plan - ${dateStr}.pdf`;
+
   const { data, error } = await resend.emails.send({
     from:     process.env.EMAIL_FROM    || 'hello@endevo.life',
     to:       recipientEmail,
     reply_to: process.env.EMAIL_REPLY_TO || 'hello@endevo.life',
     subject:  'Your 7-Day Digital Readiness Plan from Jesse',
-    html:     buildEmailHtml(name, score, tier),
+    html:     buildEmailHtml(name, score, tier, pdfFilename),
     attachments: [
       {
-        filename: 'jesse-readiness-plan.pdf',
+        filename: pdfFilename,
         content:  pdfBuffer.toString('base64'),
       },
     ],

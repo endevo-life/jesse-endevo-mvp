@@ -24,10 +24,10 @@ const DOMAIN_COLORS: Record<keyof DomainScores, RGB> = {
 };
 
 const DOMAIN_LABELS: Record<keyof DomainScores, string> = {
-  access_ownership:    'Access & Ownership',
-  data_loss:           'Data Loss',
-  platform_limitation: 'Platform',
-  stewardship:         'Stewardship',
+  access_ownership:    'Your Logins & Accounts',
+  data_loss:           'Your Files & Memories',
+  platform_limitation: 'Your Apps & Platforms',
+  stewardship:         'Sharing Your Digital Life',
 };
 
 const DOMAIN_MAX: DomainScores = {
@@ -152,6 +152,13 @@ export async function generatePDF({ name, readiness_score, tier, domain_scores, 
   const helvetica     = await pdfDoc.embedFont(StandardFonts.Helvetica);
   const helveticaBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
 
+  // PDF metadata — shows correctly in mobile viewers and OS previews
+  const dateISO = new Date().toISOString().slice(0, 10);
+  pdfDoc.setTitle(`${name} - 7Day Plan - ${dateISO}`);
+  pdfDoc.setAuthor('Jesse by ENDevo');
+  pdfDoc.setSubject('Your Personal Digital Readiness Plan');
+  pdfDoc.setKeywords(['digital readiness', 'ENDevo', 'Jesse', tier]);
+
   const W = 595, H = 842, margin = 44;
   const inner = W - margin * 2; // 507
 
@@ -233,9 +240,9 @@ export async function generatePDF({ name, readiness_score, tier, domain_scores, 
     'Peace Champion':  "You're genuinely ahead of most people. Let's keep it that way.",
     'On Your Way':     "You've started — now let's close the gaps before they become problems.",
     'Getting Clarity': "You're more aware than most. A few focused steps will change everything.",
-    'Starting Fresh':  "No worries — this is exactly the right place to start. Let's go.",
+    'Starting Fresh':  "Good news — this is exactly the right place to start. Let's do this.",
   };
-  wrapText(OPENING[tier] ?? '', helvetica, 12, inner * 0.55).forEach((l, i) => {
+  wrapText(OPENING[tier] ?? '', helvetica, 12, inner * 0.62).forEach((l, i) => {
     p1.drawText(l, { x: margin, y: yPos - 118 - i * 17, font: helvetica, size: 12, color: rgb(0.278, 0.365, 0.455) });
   });
 
@@ -256,7 +263,7 @@ export async function generatePDF({ name, readiness_score, tier, domain_scores, 
 
   // Domain bars (left side)
   const barAreaW = inner * 0.52, barH = 13, barGap = 28;
-  p1.drawText('Domain Breakdown', { x: margin, y: chartTop + 4, font: helveticaBold, size: 11, color: NAVY });
+  p1.drawText('Your Digital Life', { x: margin, y: chartTop + 4, font: helveticaBold, size: 11, color: NAVY });
   let barY = chartTop - 20;
   for (const [domain, raw] of Object.entries(domain_scores) as [keyof DomainScores, number][]) {
     const pct = raw / DOMAIN_MAX[domain];
@@ -320,7 +327,7 @@ export async function generatePDF({ name, readiness_score, tier, domain_scores, 
 
   // Disclaimer footer
   p1.drawText(
-    'This report is for educational purposes only. Not legal or financial advice. Jesse by ENDevo  ·  https://endevo.life',
+    'This is your personal guide — not legal or financial advice. Jesse by ENDevo  ·  https://endevo.life',
     { x: margin, y: 24, font: helvetica, size: 7.5, color: MGREY }
   );
 
@@ -530,6 +537,38 @@ export async function generatePDF({ name, readiness_score, tier, domain_scores, 
       py -= LINE_H;
     }
   }
+
+  // ── My Notes — interactive text field at the end ──────────────────────────
+  const NOTES_FIELD_H = 120;
+  const NOTES_TOTAL   = 16 + 14 + 8 + NOTES_FIELD_H + 16;
+
+  py -= 16;
+  if (py < MIN_Y + NOTES_TOTAL) newPage();
+
+  // Section label
+  planPage.drawText('My Notes', {
+    x: margin, y: py,
+    font: helveticaBold, size: 12, color: NAVY,
+  });
+  py -= 14;
+  planPage.drawText('Write down anything that stands out or that you want to remember.', {
+    x: margin, y: py,
+    font: helvetica, size: 9, color: MGREY,
+  });
+  py -= 10;
+
+  // Saveable multi-line text field (addToPage first so /DA entry exists)
+  const notesField = form.createTextField('my_notes');
+  notesField.enableMultiline();
+  notesField.addToPage(planPage, {
+    x: margin, y: py - NOTES_FIELD_H,
+    width: inner, height: NOTES_FIELD_H,
+    backgroundColor: rgb(0.988, 0.992, 0.996),
+    borderColor: LGREY,
+    borderWidth: 1,
+  });
+  notesField.setFontSize(10);
+  py -= NOTES_FIELD_H + 16;
 
   drawPlanFooter(planPage);
 
