@@ -1,14 +1,14 @@
-'use strict';
-
-const { Resend } = require('resend');
+import { Resend } from 'resend';
+import type { EmailSendParams, EmailSendResult } from '../types/index';
+import { ServiceError } from '../middleware/errorHandler';
 
 // ── Email HTML template ───────────────────────────────────────────────────────
-function buildEmailHtml(name, score, tier) {
-  const tierColors = {
-    'Peace Champion': '#22C55E',
-    'On Your Way':    '#4A90D9',
+function buildEmailHtml(name: string, score: number, tier: string): string {
+  const tierColors: Record<string, string> = {
+    'Peace Champion':  '#22C55E',
+    'On Your Way':     '#4A90D9',
     'Getting Clarity': '#E8651A',
-    'Starting Fresh': '#A855F7',
+    'Starting Fresh':  '#A855F7',
   };
   const tierColor = tierColors[tier] ?? '#1B2A4A';
 
@@ -92,7 +92,7 @@ function buildEmailHtml(name, score, tier) {
 }
 
 // ── Send email via Resend ─────────────────────────────────────────────────────
-async function sendPlanEmail({ name, email, score, tier, pdfBuffer }) {
+export async function sendPlanEmail({ name, email, score, tier, pdfBuffer }: EmailSendParams): Promise<EmailSendResult> {
   const apiKey = process.env.RESEND_API_KEY;
 
   if (!apiKey || apiKey === 'your_resend_api_key_here') {
@@ -102,27 +102,30 @@ async function sendPlanEmail({ name, email, score, tier, pdfBuffer }) {
 
   const resend = new Resend(apiKey);
 
+  // TODO: Replace hardcoded test email with dynamic `email` parameter once
+  // Resend domain verification + API key are confirmed working end-to-end.
+  // Production: const recipientEmail = email;
+  const recipientEmail = 'bluesproutagency@gmail.com'; // endevo-life admin test address
+
   const { data, error } = await resend.emails.send({
-    from: process.env.EMAIL_FROM || 'jesse@endevo.life',
-    to: email,
+    from:     process.env.EMAIL_FROM    || 'hello@endevo.life',
+    to:       recipientEmail,
     reply_to: process.env.EMAIL_REPLY_TO || 'hello@endevo.life',
-    subject: 'Your 7-Day Digital Readiness Plan from Jesse',
-    html: buildEmailHtml(name, score, tier),
+    subject:  'Your 7-Day Digital Readiness Plan from Jesse',
+    html:     buildEmailHtml(name, score, tier),
     attachments: [
       {
         filename: 'jesse-readiness-plan.pdf',
-        content: pdfBuffer.toString('base64'),
+        content:  pdfBuffer.toString('base64'),
       },
     ],
   });
 
   if (error) {
     console.error('[Email] Resend error:', error);
-    throw new Error(`Email delivery failed: ${error.message}`);
+    throw new ServiceError(`Email delivery failed: ${error.message}`, 'EMAIL_DELIVERY_FAILED');
   }
 
   console.log('[Email] Sent successfully, id:', data?.id);
   return { id: data?.id };
 }
-
-module.exports = { sendPlanEmail };
