@@ -36,6 +36,10 @@ const CaptureScreen: React.FC<CaptureScreenProps> = ({ onSubmit }) => {
     <div className="capture-screen">
       <div className="noise-overlay" />
 
+      <nav className="screen-nav">
+        <img src="/logo_resized.png" alt="ENDevo" className="screen-nav-logo" />
+      </nav>
+
       <div className="capture-card">
         {/* Jesse avatar */}
         <div className="capture-avatar">

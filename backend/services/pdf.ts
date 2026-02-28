@@ -24,10 +24,10 @@ const DOMAIN_COLORS: Record<keyof DomainScores, RGB> = {
 };
 
 const DOMAIN_LABELS: Record<keyof DomainScores, string> = {
-  access_ownership:    'Access & Ownership',
-  data_loss:           'Data Loss',
-  platform_limitation: 'Platform',
-  stewardship:         'Stewardship',
+  access_ownership:    'Getting Into Your Accounts',
+  data_loss:           'Protecting Files & Memories',
+  platform_limitation: 'App & Online Safety',
+  stewardship:         'Family & Future Planning',
 };
 
 const DOMAIN_MAX: DomainScores = {
@@ -45,8 +45,9 @@ const TIER_COLORS: Record<string, RGB> = {
 };
 
 // ── Asset loaders ────────────────────────────────────────────────────────────
-const LOGO_PATH  = path.resolve(__dirname, '../../logo_resized.png');
-const JESSE_PATH = path.resolve(__dirname, '../../Jesse Image.png');
+// process.cwd() = backend/ locally (node dist/server.js) and /var/task/ on Vercel
+const LOGO_PATH  = path.resolve(process.cwd(), 'logo_resized.png');
+const JESSE_PATH = path.resolve(process.cwd(), 'Jesse-image.png');
 
 function loadLogo(): Buffer | null {
   try { return fs.readFileSync(LOGO_PATH); }
@@ -148,9 +149,23 @@ function drawRect(page: PDFPage, x: number, y: number, w: number, h: number, col
 
 // ── Main PDF generator ────────────────────────────────────────────────────────
 export async function generatePDF({ name, readiness_score, tier, domain_scores, plan }: PDFGenerationParams): Promise<Buffer> {
+  console.log(`[PDF] Generating PDF for "${name}" (score: ${readiness_score}/100, tier: ${tier})`);
+  const t0            = Date.now();
   const pdfDoc        = await PDFDocument.create();
   const helvetica     = await pdfDoc.embedFont(StandardFonts.Helvetica);
   const helveticaBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+
+  // ── PDF document metadata (fixes title shown in PDF viewers & email clients) ─
+  const pdfNow      = new Date();
+  const pdfMM       = String(pdfNow.getMonth() + 1).padStart(2, '0');
+  const pdfDD       = String(pdfNow.getDate()).padStart(2, '0');
+  const pdfYYYY     = pdfNow.getFullYear();
+  const pdfSafeName = name.replace(/[^a-zA-Z0-9 ]/g, '').trim();
+  pdfDoc.setTitle(`${pdfSafeName} — 7-Day Digital Readiness Plan (${pdfMM}-${pdfDD}-${pdfYYYY})`);
+  pdfDoc.setAuthor('Jesse by ENDevo');
+  pdfDoc.setSubject('7-Day Digital Readiness Plan');
+  pdfDoc.setCreator('ENDevo — Plan. Protect. Peace.');
+  pdfDoc.setProducer('Jesse by ENDevo · endevo.life');
 
   const W = 595, H = 842, margin = 44;
   const inner = W - margin * 2; // 507
@@ -256,7 +271,7 @@ export async function generatePDF({ name, readiness_score, tier, domain_scores, 
 
   // Domain bars (left side)
   const barAreaW = inner * 0.52, barH = 13, barGap = 28;
-  p1.drawText('Domain Breakdown', { x: margin, y: chartTop + 4, font: helveticaBold, size: 11, color: NAVY });
+  p1.drawText('Your Score Breakdown', { x: margin, y: chartTop + 4, font: helveticaBold, size: 11, color: NAVY });
   let barY = chartTop - 20;
   for (const [domain, raw] of Object.entries(domain_scores) as [keyof DomainScores, number][]) {
     const pct = raw / DOMAIN_MAX[domain];
@@ -531,7 +546,50 @@ export async function generatePDF({ name, readiness_score, tier, domain_scores, 
     }
   }
 
+  // ── "My Notes" section at end of plan ─────────────────────────────────────
+  const NOTES_FIELD_H = 120;
+  const NOTES_TOTAL   = NOTES_FIELD_H + 42; // label + divider + field
+
+  py -= 16;
+  if (py < MIN_Y + NOTES_TOTAL) newPage();
+
+  planPage.drawText('MY NOTES', {
+    x: margin, y: py,
+    font: helveticaBold, size: 9, color: NAVY,
+  });
+  py -= 10;
+  drawRect(planPage, margin, py, inner, 1, LGREY);
+  py -= 12;
+
+  // Interactive multi-line text field (saveable in any PDF viewer)
+  const notesField = form.createTextField('my_notes');
+  notesField.enableMultiline();
+  notesField.addToPage(planPage, {
+    x: margin, y: py - NOTES_FIELD_H,
+    width: inner, height: NOTES_FIELD_H,
+    backgroundColor: rgb(0.988, 0.992, 0.996),
+    borderColor: LGREY,
+    borderWidth: 1,
+  });
+  notesField.setFontSize(10);
+
+  // Printed guide-lines inside the notes field (useful when printed)
+  const lineCount = 6;
+  const lineSpacing = Math.floor(NOTES_FIELD_H / (lineCount + 1));
+  for (let li = 1; li <= lineCount; li++) {
+    const lineY = py - li * lineSpacing;
+    drawRect(planPage, margin + 4, lineY, inner - 8, 0.5, LGREY);
+  }
+
+  // Footnote below notes box
+  planPage.drawText('Use this space to capture your thoughts, priorities, or reminders as you work through your plan.', {
+    x: margin, y: py - NOTES_FIELD_H - 14,
+    font: helvetica, size: 8, color: MGREY,
+  });
+
   drawPlanFooter(planPage);
 
-  return Buffer.from(await pdfDoc.save());
+  const buffer = Buffer.from(await pdfDoc.save());
+  console.log(`[PDF] Generation complete — ${Math.round(buffer.length / 1024)} KB in ${Date.now() - t0}ms`);
+  return buffer;
 }

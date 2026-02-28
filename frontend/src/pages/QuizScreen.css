@@ -55,24 +55,10 @@
 }
 
 .quiz-brand {
-  font-family: 'Sora', sans-serif;
-  font-size: 0.82rem;
-  font-weight: 700;
-  color: rgba(255,255,255,0.5);
-  letter-spacing: 0.05em;
   display: flex;
   align-items: center;
-  gap: 5px;
-  width: 80px;
   justify-content: flex-end;
-}
-
-.brand-dot-sm {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: #f97316;
-  display: inline-block;
+  width: 110px;
 }
 
 /* Progress bar */
@@ -230,6 +216,24 @@
   font-size: 0.75rem;
   color: white;
   flex-shrink: 0;
+}
+
+/* Mobile */
+@media (max-width: 480px) {
+  .quiz-topbar {
+    padding: 1rem 1rem 0;
+  }
+  .quiz-card {
+    padding: 0 1rem;
+    margin-top: 1.5rem;
+  }
+  .answer-btn {
+    padding: 0.875rem 1rem;
+    min-height: 52px;
+  }
+  .answer-text {
+    font-size: 0.9rem;
+  }
 }
 
 /* Animations */
