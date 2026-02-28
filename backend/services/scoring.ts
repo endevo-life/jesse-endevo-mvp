@@ -69,6 +69,8 @@ const SIGNALS: Record<number, SignalAnswers> = {
 
 // ── Score a completed assessment ──────────────────────────────────────────────
 export function score(answers: Answer[]): ScoringResult {
+  console.log(`[Scoring] Calculating score for ${answers.length} answers`);
+
   const domainRaw: DomainScores = {
     access_ownership:    0,
     data_loss:           0,
@@ -102,6 +104,8 @@ export function score(answers: Answer[]): ScoringResult {
     const pct = raw / DOMAIN_MAX[domain];
     if (pct < lowestPct) { lowestPct = pct; lowestDomain = domain; }
   }
+
+  console.log(`[Scoring] Result: ${total}/100, Tier: "${tierObj.label}", Gaps: ${criticalGaps.length}, Weakest domain: ${lowestDomain}`);
 
   return {
     readiness_score: total,

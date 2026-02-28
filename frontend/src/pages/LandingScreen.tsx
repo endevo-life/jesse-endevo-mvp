@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import "./LandingScreen.css";
 
 interface LandingScreenProps {
@@ -6,6 +6,8 @@ interface LandingScreenProps {
 }
 
 const LandingScreen: React.FC<LandingScreenProps> = ({ onStart }) => {
+  const [muted, setMuted] = useState(true);
+
   return (
     <div className="landing-screen">
       {/* Noise overlay */}
@@ -14,41 +16,16 @@ const LandingScreen: React.FC<LandingScreenProps> = ({ onStart }) => {
       {/* Top Nav */}
       <nav className="landing-nav">
         <div className="brand-logo">
-          <span className="brand-dot" />
-          <span className="brand-name">ENDevo</span>
+          <img src="/logo_resized.png" alt="ENDevo" className="brand-logo-image" />
         </div>
       </nav>
 
       {/* Hero Content */}
       <div className="landing-hero">
-        {/* Jesse Avatar */}
+        {/* Jesse Image */}
         <div className="jesse-avatar-wrap">
           <div className="jesse-avatar-glow" />
-          <div className="jesse-avatar">
-            <svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
-              {/* Head */}
-              <circle cx="40" cy="30" r="22" fill="#2563EB" />
-              {/* Face highlight */}
-              <ellipse cx="33" cy="25" rx="4" ry="5" fill="rgba(255,255,255,0.15)" />
-              {/* Eyes */}
-              <circle cx="33" cy="27" r="4" fill="white" />
-              <circle cx="47" cy="27" r="4" fill="white" />
-              <circle cx="34" cy="28" r="2" fill="#1e3a8a" />
-              <circle cx="48" cy="28" r="2" fill="#1e3a8a" />
-              {/* Smile */}
-              <path d="M32 36 Q40 42 48 36" stroke="white" strokeWidth="2.5" strokeLinecap="round" fill="none"/>
-              {/* Body */}
-              <rect x="20" y="55" width="40" height="25" rx="12" fill="#1d4ed8" />
-              {/* Arms */}
-              <rect x="5" y="57" width="18" height="10" rx="5" fill="#2563EB" />
-              <rect x="57" y="57" width="18" height="10" rx="5" fill="#2563EB" />
-              {/* Tie / detail */}
-              <rect x="37" y="56" width="6" height="14" rx="3" fill="#f97316" />
-              {/* Badge */}
-              <circle cx="40" cy="15" r="5" fill="#f97316" />
-              <text x="40" y="18.5" textAnchor="middle" fill="white" fontSize="6" fontWeight="bold">J</text>
-            </svg>
-          </div>
+          <img src="/jesse.png" alt="Jesse" className="jesse-image" />
           <div className="jesse-label">Jesse · Your Digital Guide</div>
         </div>
 
@@ -60,8 +37,8 @@ const LandingScreen: React.FC<LandingScreenProps> = ({ onStart }) => {
         </h1>
 
         <p className="landing-sub">
-          Jesse will ask you 10 questions and build your personal<br className="d-none d-md-inline" />
-          <strong> 7-day Digital Readiness Plan</strong> — sent straight to your inbox.
+          Jesse will ask you 10 questions and build your personal{" "}
+          <strong>7-day Digital Readiness Plan</strong> — sent straight to your inbox.
         </p>
 
         {/* Stats row */}
@@ -71,6 +48,44 @@ const LandingScreen: React.FC<LandingScreenProps> = ({ onStart }) => {
           <div className="stat-pill">90 Seconds</div>
           <div className="stat-divider" />
           <div className="stat-pill">Free PDF Report</div>
+        </div>
+
+        <div className="jesse-intro">
+          <strong>Jesse Intro:</strong> I'll guide you with quick, simple questions and build your personalized plan at the end.
+        </div>
+
+        <div className="jesse-video-wrap">
+          <video
+            className="jesse-video"
+            src="/jesse-intro.mp4"
+            autoPlay
+            loop
+            muted={muted}
+            playsInline
+            controlsList="nodownload"
+            onContextMenu={(e) => e.preventDefault()}
+          />
+          <button
+            className="video-sound-btn"
+            onClick={() => setMuted((m) => !m)}
+            aria-label={muted ? "Unmute video" : "Mute video"}
+          >
+            {muted ? (
+              /* Muted icon */
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                <path d="M11 5L6 9H2v6h4l5 4V5z" fill="currentColor"/>
+                <line x1="23" y1="9" x2="17" y2="15" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                <line x1="17" y1="9" x2="23" y2="15" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+              </svg>
+            ) : (
+              /* Sound on icon */
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                <path d="M11 5L6 9H2v6h4l5 4V5z" fill="currentColor"/>
+                <path d="M15.54 8.46a5 5 0 0 1 0 7.07" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                <path d="M19.07 4.93a10 10 0 0 1 0 14.14" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+              </svg>
+            )}
+          </button>
         </div>
 
         <button className="cta-button" onClick={onStart}>
