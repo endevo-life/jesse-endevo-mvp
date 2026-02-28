@@ -5,7 +5,8 @@ import { ServiceError } from '../middleware/errorHandler';
 // ── Logo URL ──────────────────────────────────────────────────────────────────
 // Email clients (Gmail, Outlook, Apple Mail) block base64/data-URI images.
 // Use a direct public URL instead. Override via PUBLIC_LOGO_URL env var if needed.
-const LOGO_URL = process.env.PUBLIC_LOGO_URL ?? 'https:/localhost:5000/logo_resized.png';
+// Set PUBLIC_LOGO_URL on Vercel backend env vars → point to frontend URL /logo_resized.png
+const LOGO_URL = process.env.PUBLIC_LOGO_URL ?? '';
 // â”€â”€ Email HTML â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function buildEmailHtml(name: string, score: number, tier: string, pdfFilename: string): string {
   const tierColors: Record<string, string> = {
@@ -15,8 +16,9 @@ function buildEmailHtml(name: string, score: number, tier: string, pdfFilename: 
     'Starting Fresh':  '#A855F7',
   };
   const tierColor = tierColors[tier] ?? '#1B2A4A';
-  // Use a hosted URL so all email clients (Gmail, Outlook, Apple Mail) render the logo
-  const logoHtml  = `<img src="${LOGO_URL}" alt="ENDevo" width="150" style="max-width:150px;height:auto;display:block;margin:0 auto 14px;" />`;
+  const logoHtml = LOGO_URL
+    ? `<img src="${LOGO_URL}" alt="ENDevo" width="150" style="max-width:150px;height:auto;display:block;margin:0 auto 14px;" />`
+    : `<p style="margin:0 0 14px;color:#E8651A;font-size:13px;letter-spacing:2px;font-weight:bold;text-transform:uppercase;">ENDevo</p>`;
 
   return `<!DOCTYPE html>
 <html lang="en">
