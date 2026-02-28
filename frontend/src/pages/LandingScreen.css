@@ -21,7 +21,7 @@
   width: 100%;
   max-width: 900px;
   display: flex;
-  justify-content: flex-start;
+  justify-content: flex-end;
   padding: 1.5rem 2rem;
   position: relative;
   z-index: 2;
@@ -30,23 +30,12 @@
 .brand-logo {
   display: flex;
   align-items: center;
-  gap: 8px;
 }
 
-.brand-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: #f97316;
-  display: inline-block;
-}
-
-.brand-name {
-  font-family: 'Sora', sans-serif;
-  font-weight: 700;
-  font-size: 1.1rem;
-  color: #fff;
-  letter-spacing: 0.05em;
+.brand-logo-image {
+  width: 120px;
+  height: auto;
+  object-fit: contain;
 }
 
 .landing-hero {
@@ -92,6 +81,17 @@
   justify-content: center;
   position: relative;
   backdrop-filter: blur(10px);
+}
+
+.jesse-image {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid rgba(249,115,22,0.45);
+  box-shadow: 0 12px 28px rgba(0,0,0,0.35);
+  position: relative;
+  z-index: 1;
 }
 
 .jesse-label {
@@ -161,6 +161,64 @@
   background: rgba(249,115,22,0.6);
 }
 
+.jesse-intro {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.95rem;
+  color: rgba(255,255,255,0.82);
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.14);
+  border-radius: 14px;
+  padding: 0.85rem 1rem;
+  margin-bottom: 1.25rem;
+  max-width: 620px;
+  animation: slideUp 0.7s ease 0.35s both;
+}
+
+.jesse-intro strong {
+  color: #fbbf24;
+}
+
+.jesse-video-wrap {
+  width: 100%;
+  max-width: 520px;
+  margin-bottom: 1.25rem;
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.16);
+  background: rgba(255,255,255,0.06);
+  animation: slideUp 0.7s ease 0.38s both;
+  position: relative;
+}
+
+.jesse-video {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.video-sound-btn {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.55);
+  border: 1px solid rgba(255,255,255,0.2);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.2s;
+  backdrop-filter: blur(4px);
+  z-index: 3;
+}
+
+.video-sound-btn:hover {
+  background: rgba(249,115,22,0.7);
+}
+
 /* CTA Button */
 .cta-button {
   display: flex;
@@ -211,6 +269,43 @@
 .landing-wave svg {
   width: 100%;
   height: 100%;
+}
+
+/* Mobile */
+@media (max-width: 480px) {
+  .landing-nav {
+    padding: 1rem 1.25rem;
+  }
+  .landing-hero {
+    padding: 1.25rem 1.25rem 3rem;
+  }
+  .jesse-image {
+    width: 96px;
+    height: 96px;
+  }
+  .jesse-video-wrap {
+    max-width: 100%;
+    border-radius: 10px;
+  }
+  .cta-button {
+    width: 100%;
+    justify-content: center;
+    padding: 0.9rem 1.5rem;
+    font-size: 1rem;
+  }
+  .stat-divider {
+    display: none;
+  }
+  .landing-stats {
+    gap: 0.5rem;
+  }
+  .brand-logo-image {
+    width: 96px;
+  }
+  .jesse-intro {
+    font-size: 0.88rem;
+    padding: 0.75rem 0.875rem;
+  }
 }
 
 /* Animations */

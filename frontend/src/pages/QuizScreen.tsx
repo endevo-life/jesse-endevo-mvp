@@ -18,7 +18,6 @@ const QuizScreen: React.FC<QuizScreenProps> = ({
 }) => {
   const [selected, setSelected] = useState<string | null>(null);
   const [animating, setAnimating] = useState(false);
-  const [direction, setDirection] = useState<"in" | "out">("in");
   const [visible, setVisible] = useState(true);
 
   const q = QUESTIONS[currentQuestion];
@@ -27,7 +26,6 @@ const QuizScreen: React.FC<QuizScreenProps> = ({
   // Reset selection on question change
   useEffect(() => {
     setSelected(answers[q.id]?.answer ?? null);
-    setDirection("in");
     setVisible(true);
     setAnimating(false);
   }, [currentQuestion, q.id, answers]);
@@ -38,15 +36,12 @@ const QuizScreen: React.FC<QuizScreenProps> = ({
 
     setTimeout(() => {
       setAnimating(true);
-      setDirection("out");
       setVisible(false);
       setTimeout(() => {
         onAnswer(q.id, label, score, q.domain);
       }, 350);
     }, 400);
   };
-
-  const answerLabels = ["A", "B", "C", "D"];
 
   return (
     <div className="quiz-screen">
@@ -55,19 +50,17 @@ const QuizScreen: React.FC<QuizScreenProps> = ({
       {/* Top bar */}
       <div className="quiz-topbar">
         <div className="quiz-nav-left">
-          {currentQuestion > 0 && (
-            <button className="back-btn" onClick={onBack} aria-label="Go back">
-              <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                <path d="M13 4l-6 6 6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            </button>
-          )}
+          <button className="back-btn" onClick={onBack} aria-label="Go back">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+              <path d="M13 4l-6 6 6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </button>
         </div>
         <div className="quiz-progress-info">
           Q<strong>{currentQuestion + 1}</strong> of {QUESTIONS.length}
         </div>
         <div className="quiz-brand">
-          <span className="brand-dot-sm" />ENDevo
+          <img src="/logo_resized.png" alt="ENDevo" className="screen-nav-logo" />
         </div>
       </div>
 

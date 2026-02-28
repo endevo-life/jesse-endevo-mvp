@@ -29,6 +29,10 @@ const ConfirmationScreen: React.FC<ConfirmationScreenProps> = ({ name }) => {
     <div className="confirm-screen">
       <div className="noise-overlay" />
 
+      <nav className="screen-nav">
+        <img src="/logo_resized.png" alt="ENDevo" className="screen-nav-logo" />
+      </nav>
+
       <div className="confirm-content">
         {/* Animated checkmark */}
         <div className={`checkmark-wrap ${checkVisible ? "check-animate" : ""}`}>

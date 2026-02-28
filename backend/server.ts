@@ -1,7 +1,6 @@
 import 'dotenv/config';
 import express, { Request, Response } from 'express';
 import cors from 'cors';
-import fs from 'fs';
 
 import { score }          from './services/scoring';
 import { generatePlan }   from './services/ai';
@@ -64,7 +63,10 @@ app.post('/api/assess', asyncHandler(async (req: Request, res: Response) => {
   const cleanName = (name as string).trim();
 
   // ── Step 1: Score ──────────────────────────────────────────────────────
-  console.log(`[assess] Scoring for ${cleanName} <${email}>`);
+  console.log(`[assess] Starting pipeline for "${cleanName}"`);
+  const pipelineStart = Date.now();
+
+  console.log(`[assess] Step 1/4 — Scoring`);
   const scored = score(answers as Answer[]);
 
   const payload: AssessmentPayload = {
@@ -81,9 +83,12 @@ app.post('/api/assess', asyncHandler(async (req: Request, res: Response) => {
   console.log(`[assess] Score: ${payload.readiness_score}/100  Tier: ${payload.tier}`);
 
   // ── Step 2: Generate AI plan (silent fallback on failure) ──────────────
-  const { plan } = await generatePlan(payload);
+  console.log(`[assess] Step 2/4 — AI plan`);
+  const { plan, source } = await generatePlan(payload);
+  console.log(`[assess] Plan source: ${source}`);
 
   // ── Step 3: Generate branded PDF ──────────────────────────────────────
+  console.log(`[assess] Step 3/4 — PDF generation`);
   const pdfBuffer = await generatePDF({
     name:            cleanName,
     readiness_score: payload.readiness_score,
@@ -92,10 +97,8 @@ app.post('/api/assess', asyncHandler(async (req: Request, res: Response) => {
     plan,
   });
 
-  // JUST FOR TESTING — REMOVE BEFORE PRODUCTION
-  fs.writeFileSync('test-output.pdf', pdfBuffer);
-
   // ── Step 4: Send email via Resend with PDF attached ────────────────────
+  console.log(`[assess] Step 4/4 — Email send`);
   await sendPlanEmail({
     name:      cleanName,
     email:     email as string,
@@ -105,6 +108,7 @@ app.post('/api/assess', asyncHandler(async (req: Request, res: Response) => {
   });
 
   // ── Step 5: 200 → frontend shows confirmation screen ──────────────────
+  console.log(`[assess] Pipeline complete in ${Date.now() - pipelineStart}ms`);
   res.status(200).json({ success: true, message: 'Plan sent successfully' });
 }));
 
@@ -123,10 +127,15 @@ app.use(notFoundHandler);
 // ── Global error handler — must be LAST ──────────────────────────────────────
 app.use(errorHandler);
 
-// ── Start ─────────────────────────────────────────────────────────────────────
-app.listen(PORT, () => {
-  console.log('─────────────────────────────────────────');
-  console.log(`  Jesse Backend  |  port ${PORT}  |  ${process.env.NODE_ENV}`);
-  console.log(`  Endpoint: POST http://localhost:${PORT}/api/assess`);
-  console.log('─────────────────────────────────────────');
-});
+// ── Start (local dev) / Export (Vercel serverless) ───────────────────────────
+// On Vercel, the module is require()'d by the lambda runtime — don't call listen()
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log('─────────────────────────────────────────');
+    console.log(`  Jesse Backend  |  port ${PORT}  |  ${process.env.NODE_ENV}`);
+    console.log(`  Endpoint: POST http://localhost:${PORT}/api/assess`);
+    console.log('─────────────────────────────────────────');
+  });
+}
+
+module.exports = app;

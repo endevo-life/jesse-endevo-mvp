@@ -1,7 +1,6 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { AppScreen, UserAnswers } from "./types";
 import { QUESTIONS } from "./data/questions";
-import { calculateScore } from "./utils/scoring";
 import { API_ENDPOINTS } from "./api/config";
 
 import LandingScreen from "./pages/LandingScreen";
@@ -57,13 +56,17 @@ function App() {
     setUserName(name);
     setScreen("loading");
 
-    const totalScore = calculateScore(answers);
+    // Transform answers object into the array format the backend expects:
+    // { q1_phone_access: { answer: "A", ... } } → [{ q: 1, answer: "A" }, ...]
+    const answersArray = QUESTIONS.map((q) => ({
+      q: q.number,
+      answer: answers[q.id]?.answer ?? "A",
+    }));
 
     const payload = {
       name,
       email,
-      answers,
-      totalScore,
+      answers: answersArray,
     };
 
     try {

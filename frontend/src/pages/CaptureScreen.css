@@ -2,9 +2,10 @@
   min-height: 100vh;
   background: linear-gradient(160deg, #0f172a 0%, #172554 60%, #0f172a 100%);
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 2rem 1rem;
+  padding: 0 1rem 2rem;
   position: relative;
 }
 
@@ -161,6 +162,20 @@
   color: rgba(255,255,255,0.35);
   text-align: center;
   margin-top: 0.25rem;
+}
+
+/* Mobile */
+@media (max-width: 480px) {
+  .capture-card {
+    padding: 2rem 1.25rem;
+    border-radius: 18px;
+  }
+  .capture-heading {
+    font-size: 1.3rem;
+  }
+  .send-btn {
+    font-size: 0.95rem;
+  }
 }
 
 @keyframes fadeScaleIn {
