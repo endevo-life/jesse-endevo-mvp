@@ -1,7 +1,11 @@
 {
+  "version": 2,
   "functions": {
     "server.ts": {
       "includeFiles": "logo_resized.png|Jesse-image.png"
     }
-  }
+  },
+  "routes": [
+    { "src": "/(.*)", "dest": "server.ts" }
+  ]
 }
