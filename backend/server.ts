@@ -1,5 +1,6 @@
-import 'dotenv/config';
-import express, { Request, Response } from 'express';
+import path from 'path';
+import dotenv from 'dotenv';
+import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 
 import { score }          from './services/scoring';
@@ -14,28 +15,54 @@ import {
 } from './middleware/errorHandler';
 import type { Answer, AssessmentPayload } from './types/index';
 
+dotenv.config({ path: path.join(__dirname, '.env') });
+
+console.log('🔧 Environment variables loaded:');
+console.log('- NODE_ENV:', process.env.NODE_ENV || 'production');
+console.log('- VERCEL:', process.env.VERCEL || 'false');
+console.log('- RESEND_API_KEY exists:', !!process.env.RESEND_API_KEY);
+console.log('- ANTHROPIC_API_KEY exists:', !!process.env.ANTHROPIC_API_KEY);
+
 const app  = express();
 const PORT = process.env.PORT ?? 5000;
 
 // ── CORS ──────────────────────────────────────────────────────────────────────
-const allowedOrigins = (process.env.FRONTEND_URLS ?? 'http://localhost:3000')
-  .split(',')
-  .map(s => s.trim());
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://localhost:5174',
+  'http://localhost:3000',
+  'https://jesse-endevo-mvp.vercel.app',
+  'https://*.vercel.app',
+  process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null,
+  ...(process.env.FRONTEND_URLS ? process.env.FRONTEND_URLS.split(',').map(s => s.trim()) : []),
+].filter(Boolean) as string[];
 
 app.use(cors({
   origin: (origin, cb) => {
-    // Allow no-origin requests (curl, Postman) in development
-    if (!origin || allowedOrigins.includes(origin)) return cb(null, true);
+    if (!origin) return cb(null, true); // curl / Postman
+    if (allowedOrigins.some(o => o.includes('*')
+      ? new RegExp('^' + o.replace('*', '.*') + '$').test(origin)
+      : o === origin
+    )) return cb(null, true);
     cb(new Error(`CORS: origin ${origin} not allowed`));
   },
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
 }));
 
-app.use(express.json());
+// ── Body parsing ──────────────────────────────────────────────────────────────
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // ── Request logging ───────────────────────────────────────────────────────────
-app.use((req, _res, next) => {
-  console.log(`[${new Date().toISOString()}] ${req.method} ${req.path}`);
+app.use((req: Request, _res: Response, next: NextFunction) => {
+  console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
+  if (req.body && Object.keys(req.body).length > 0) {
+    const safe = { ...req.body };
+    if (safe.email) safe.email = '***';
+    console.log('Request body:', safe);
+  }
   next();
 });
 
@@ -115,9 +142,13 @@ app.post('/api/assess', asyncHandler(async (req: Request, res: Response) => {
 // ── Health check ──────────────────────────────────────────────────────────────
 app.get('/api/health', (_req: Request, res: Response) => {
   res.json({
-    status:    'ok',
-    service:   'Jesse by ENDevo',
-    timestamp: new Date().toISOString(),
+    status:      'ok',
+    service:     'Jesse by ENDevo',
+    timestamp:   new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'production',
+    vercel:      !!process.env.VERCEL,
+    resend:      !!process.env.RESEND_API_KEY,
+    anthropic:   !!process.env.ANTHROPIC_API_KEY,
   });
 });
 
@@ -128,12 +159,15 @@ app.use(notFoundHandler);
 app.use(errorHandler);
 
 // ── Start (local dev) / Export (Vercel serverless) ───────────────────────────
-// On Vercel, the module is require()'d by the lambda runtime — don't call listen()
-if (require.main === module) {
+if (process.env.VERCEL) {
+  module.exports = app;
+} else {
   app.listen(PORT, () => {
     console.log('─────────────────────────────────────────');
-    console.log(`  Jesse Backend  |  port ${PORT}  |  ${process.env.NODE_ENV}`);
-    console.log(`  Endpoint: POST http://localhost:${PORT}/api/assess`);
+    console.log(`🚀 Jesse Backend running on http://localhost:${PORT}`);
+    console.log(`📋 Assess:  POST http://localhost:${PORT}/api/assess`);
+    console.log(`🔍 Health:  GET  http://localhost:${PORT}/api/health`);
+    console.log(`⚙️  Env:     ${process.env.NODE_ENV || 'development'}`);
     console.log('─────────────────────────────────────────');
   });
 }
