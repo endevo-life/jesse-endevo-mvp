@@ -2,7 +2,7 @@
   "version": 2,
   "builds": [
     {
-      "src": "dist/server.js",
+      "src": "server.ts",
       "use": "@vercel/node",
       "config": {
         "includeFiles": ["logo_resized.png", "Jesse-image.png"]
@@ -10,6 +10,6 @@
     }
   ],
   "routes": [
-    { "src": "/(.*)", "dest": "dist/server.js" }
+    { "src": "/(.*)", "dest": "server.ts" }
   ]
 }
