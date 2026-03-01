@@ -21,7 +21,10 @@
 }
 
 .quiz-nav-left {
-  width: 80px;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: auto;
 }
 
 .back-btn {
@@ -55,9 +58,6 @@
 }
 
 .quiz-brand {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
   width: 110px;
 }
 
